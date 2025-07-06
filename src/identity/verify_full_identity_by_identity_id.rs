@@ -2,7 +2,7 @@ use crate::utils::error::{format_error, format_result_error, ErrorCategory};
 use crate::utils::getters::VecU8ToUint8Array;
 use crate::utils::logging::{debug, error, PerfLogger};
 use crate::utils::platform_version::get_platform_version_with_validation;
-use crate::utils::serialization::identity_to_js_value;
+use dpp::serialization::PlatformSerializable;
 use drive::drive::Drive;
 use js_sys::Uint8Array;
 use wasm_bindgen::prelude::*;
@@ -10,7 +10,7 @@ use wasm_bindgen::prelude::*;
 #[wasm_bindgen]
 pub struct VerifyFullIdentityByIdentityIdResult {
     root_hash: Vec<u8>,
-    identity: JsValue,
+    identity: Option<Vec<u8>>,
 }
 
 #[wasm_bindgen]
@@ -21,7 +21,7 @@ impl VerifyFullIdentityByIdentityIdResult {
     }
 
     #[wasm_bindgen(getter)]
-    pub fn identity(&self) -> JsValue {
+    pub fn identity(&self) -> Option<Vec<u8>> {
         self.identity.clone()
     }
 }
@@ -66,11 +66,15 @@ pub fn verify_full_identity_by_identity_id(
     let identity_js = match identity_option {
         Some(identity) => {
             debug("identity", "Identity found and verified successfully");
-            identity_to_js_value(identity)?
+            Some(
+                identity
+                    .serialize_to_bytes()
+                    .map_err(|err| JsValue::from(err.to_string()))?,
+            )
         }
         None => {
             debug("identity", "No identity found for given ID");
-            JsValue::NULL
+            None
         }
     };
 

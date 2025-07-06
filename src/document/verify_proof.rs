@@ -5,7 +5,7 @@ use crate::utils::error::{
 };
 use crate::utils::getters::VecU8ToUint8Array;
 use crate::utils::platform_version::get_platform_version_with_validation;
-use crate::utils::serialization::document_to_js_value;
+use dpp::document::serialization_traits::DocumentPlatformConversionMethodsV0;
 use dpp::data_contract::accessors::v0::DataContractV0Getters;
 use dpp::data_contract::DataContract;
 use dpp::platform_value::Value;
@@ -20,7 +20,7 @@ use wasm_bindgen::prelude::*;
 #[wasm_bindgen]
 pub struct VerifyDocumentProofResult {
     root_hash: Vec<u8>,
-    documents: JsValue,
+    documents: Array,
 }
 
 #[wasm_bindgen]
@@ -31,7 +31,7 @@ impl VerifyDocumentProofResult {
     }
 
     #[wasm_bindgen(getter)]
-    pub fn documents(&self) -> JsValue {
+    pub fn documents(&self) -> Array {
         self.documents.clone()
     }
 }
@@ -118,13 +118,19 @@ pub fn verify_document_proof(
     let js_array = Array::new();
     for doc in documents {
         // Convert document to JS value
-        let doc_js = document_to_js_value(doc)?;
-        js_array.push(&doc_js);
+        let doc_js = DocumentPlatformConversionMethodsV0::serialize(
+            &doc,
+            document_type,
+            &contract.clone(),
+            &platform_version,
+        ).map_err(|err| JsError::from(err))?;
+        
+        js_array.push(&JsValue::from(doc_js));
     }
 
     Ok(VerifyDocumentProofResult {
         root_hash: root_hash.to_vec(),
-        documents: js_array.into(),
+        documents: js_array,
     })
 }
 

@@ -6,6 +6,7 @@ use drive::drive::identity::key::fetch::{IdentityKeysRequest, KeyRequestType};
 use drive::drive::Drive;
 use js_sys::{Array, Object, Reflect, Uint8Array};
 use wasm_bindgen::prelude::*;
+use dpp::serialization::PlatformSerializable;
 
 // Helper function to convert PartialIdentity to JS object
 pub fn partial_identity_to_js(identity: &PartialIdentity) -> Result<JsValue, JsValue> {
@@ -18,23 +19,12 @@ pub fn partial_identity_to_js(identity: &PartialIdentity) -> Result<JsValue, JsV
 
     // Set loadedPublicKeys
     let keys_obj = Object::new();
-    for (key_id, _public_key) in &identity.loaded_public_keys {
-        let key_obj = Object::new();
-
+    for (key_id, public_key) in &identity.loaded_public_keys {
         // Serialize the full IdentityPublicKey
-        let serialized_key = serialize_identity_public_key(_public_key)?;
+        let serialized_key = public_key.serialize_to_bytes().map_err(|err| JsValue::from(err.to_string()))?;
 
         // Merge the serialized key properties into the key object
-        let key_keys = Object::keys(&serialized_key);
-        for i in 0..key_keys.length() {
-            let prop_name = key_keys.get(i);
-            let prop_value = Reflect::get(&serialized_key, &prop_name)
-                .map_err(|_| JsValue::from_str("Failed to get key property"))?;
-            Reflect::set(&key_obj, &prop_name, &prop_value)
-                .map_err(|_| JsValue::from_str("Failed to set key property"))?;
-        }
-
-        Reflect::set(&keys_obj, &JsValue::from_str(&key_id.to_string()), &key_obj)
+        Reflect::set(&keys_obj, &JsValue::from_str(&key_id.to_string()), &JsValue::from(serialized_key))
             .map_err(|_| JsValue::from_str("Failed to set key in map"))?;
     }
     Reflect::set(&obj, &JsValue::from_str("loadedPublicKeys"), &keys_obj)
