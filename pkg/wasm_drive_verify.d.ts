@@ -227,7 +227,7 @@ export class VerifyContractResult {
   private constructor();
   free(): void;
   readonly root_hash: Uint8Array;
-  readonly contract: any;
+  readonly contract: Uint8Array | undefined;
 }
 export class VerifyDocumentProofKeepSerializedResult {
   private constructor();
@@ -535,7 +535,6 @@ export interface InitOutput {
   readonly verifyIdentityBalancesForIdentityIdsVec: (a: number, b: number, c: number, d: number, e: number) => void;
   readonly verifyIdentityBalancesForIdentityIdsMap: (a: number, b: number, c: number, d: number, e: number) => void;
   readonly verifyIdentityContractNonce: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
-  readonly verifyidentityidbynonuniquepublickeyhashresult_root_hash: (a: number) => number;
   readonly verifyIdentityIdByNonUniquePublicKeyHash: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
   readonly verifyIdentityIdByUniquePublicKeyHash: (a: number, b: number, c: number, d: number, e: number) => void;
   readonly verifyIdentityIdsByUniquePublicKeyHashesVec: (a: number, b: number, c: number, d: number, e: number) => void;
@@ -562,6 +561,7 @@ export interface InitOutput {
   readonly createSingleDocumentQuery: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number) => void;
   readonly createSingleDocumentQueryMaybeContested: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number) => void;
   readonly createSingleDocumentQueryContested: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number) => void;
+  readonly verifycontractresult_root_hash: (a: number) => number;
   readonly verifyContract: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
   readonly verifyContractHistory: (a: number, b: number, c: number, d: bigint, e: number, f: number, g: number) => void;
   readonly verifyTokenBalancesForIdentityIdVec: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
@@ -637,7 +637,7 @@ export interface InitOutput {
   readonly __wbg_verifyupgradevotestatusresult_free: (a: number, b: number) => void;
   readonly __wbg_verifyidentitynonceresult_free: (a: number, b: number) => void;
   readonly __wbg_verifydocumentproofkeepserializedresult_free: (a: number, b: number) => void;
-  readonly __wbg_verifymasternodevoteresult_free: (a: number, b: number) => void;
+  readonly __wbg_verifycontractresult_free: (a: number, b: number) => void;
   readonly __wbg_verifytokendirectsellingpricesresult_free: (a: number, b: number) => void;
   readonly __wbg_verifytokenstatusesresult_free: (a: number, b: number) => void;
   readonly __wbg_verifyfullidentitybyuniquepublickeyhashresult_free: (a: number, b: number) => void;
@@ -675,7 +675,7 @@ export interface InitOutput {
   readonly __wbg_verifyidentityvotesgivenproofresult_free: (a: number, b: number) => void;
   readonly __wbg_verifygroupinforesult_free: (a: number, b: number) => void;
   readonly __wbg_verifystartatdocumentinproofresult_free: (a: number, b: number) => void;
-  readonly __wbg_verifycontractresult_free: (a: number, b: number) => void;
+  readonly __wbg_verifymasternodevoteresult_free: (a: number, b: number) => void;
   readonly __wbg_verifyidentitybalancesforidentityidsresult_free: (a: number, b: number) => void;
   readonly __wbg_verifytokentotalsupplyandaggregatedidentitybalanceresult_free: (a: number, b: number) => void;
   readonly __wbg_verifyactionsignersresult_free: (a: number, b: number) => void;
@@ -691,7 +691,7 @@ export interface InitOutput {
   readonly verifyidentitynonceresult_root_hash: (a: number) => number;
   readonly verifydocumentproofkeepserializedresult_serialized_documents: (a: number) => number;
   readonly verifydocumentproofkeepserializedresult_root_hash: (a: number) => number;
-  readonly verifymasternodevoteresult_vote: (a: number, b: number) => void;
+  readonly verifycontractresult_contract: (a: number, b: number) => void;
   readonly verifytokendirectsellingpricesresult_prices: (a: number) => number;
   readonly verifytokendirectsellingpricesresult_root_hash: (a: number) => number;
   readonly verifytokenstatusesresult_statuses: (a: number) => number;
@@ -701,7 +701,7 @@ export interface InitOutput {
   readonly verifyidentitykeysbyidentityidresult_identity: (a: number) => number;
   readonly verifyidentitykeysbyidentityidresult_root_hash: (a: number) => number;
   readonly verifyidentityidbynonuniquepublickeyhashresult_identity_id: (a: number, b: number) => void;
-  readonly verifymasternodevoteresult_root_hash: (a: number) => number;
+  readonly verifyidentityidbynonuniquepublickeyhashresult_root_hash: (a: number) => number;
   readonly verifyepochinfosresult_epoch_infos: (a: number) => number;
   readonly verifyepochinfosresult_root_hash: (a: number) => number;
   readonly verifytokenbalancesforidentityidsresult_balances: (a: number) => number;
@@ -766,8 +766,8 @@ export interface InitOutput {
   readonly verifygroupinforesult_root_hash: (a: number) => number;
   readonly verifystartatdocumentinproofresult_document: (a: number) => number;
   readonly verifystartatdocumentinproofresult_root_hash: (a: number) => number;
-  readonly verifycontractresult_contract: (a: number) => number;
-  readonly verifycontractresult_root_hash: (a: number) => number;
+  readonly verifymasternodevoteresult_vote: (a: number, b: number) => void;
+  readonly verifymasternodevoteresult_root_hash: (a: number) => number;
   readonly verifyidentitybalancesforidentityidsresult_balances: (a: number) => number;
   readonly verifyidentitybalancesforidentityidsresult_root_hash: (a: number) => number;
   readonly verifytokentotalsupplyandaggregatedidentitybalanceresult_total_supply_and_balance: (a: number) => number;

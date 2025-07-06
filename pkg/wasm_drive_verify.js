@@ -2929,15 +2929,27 @@ export class VerifyContractResult {
      * @returns {Uint8Array}
      */
     get root_hash() {
-        const ret = wasm.verifyactioninfosincontractresult_root_hash(this.__wbg_ptr);
+        const ret = wasm.verifycontractresult_root_hash(this.__wbg_ptr);
         return takeObject(ret);
     }
     /**
-     * @returns {any}
+     * @returns {Uint8Array | undefined}
      */
     get contract() {
-        const ret = wasm.verifyactioninfosincontractresult_actions(this.__wbg_ptr);
-        return takeObject(ret);
+        try {
+            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+            wasm.singledocumentproofresult_documentSerialized(retptr, this.__wbg_ptr);
+            var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
+            var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
+            let v1;
+            if (r0 !== 0) {
+                v1 = getArrayU8FromWasm0(r0, r1).slice();
+                wasm.__wbindgen_export_1(r0, r1 * 1, 1);
+            }
+            return v1;
+        } finally {
+            wasm.__wbindgen_add_to_stack_pointer(16);
+        }
     }
 }
 
@@ -3661,7 +3673,7 @@ export class VerifyIdentityIdByNonUniquePublicKeyHashResult {
      * @returns {Uint8Array}
      */
     get root_hash() {
-        const ret = wasm.verifyidentityidbynonuniquepublickeyhashresult_root_hash(this.__wbg_ptr);
+        const ret = wasm.verifycontractresult_root_hash(this.__wbg_ptr);
         return takeObject(ret);
     }
     /**
@@ -3714,7 +3726,7 @@ export class VerifyIdentityIdByUniquePublicKeyHashResult {
      * @returns {Uint8Array}
      */
     get root_hash() {
-        const ret = wasm.verifyidentityidbynonuniquepublickeyhashresult_root_hash(this.__wbg_ptr);
+        const ret = wasm.verifycontractresult_root_hash(this.__wbg_ptr);
         return takeObject(ret);
     }
     /**
@@ -3986,7 +3998,7 @@ export class VerifyMasternodeVoteResult {
      * @returns {Uint8Array}
      */
     get root_hash() {
-        const ret = wasm.verifyidentityidbynonuniquepublickeyhashresult_root_hash(this.__wbg_ptr);
+        const ret = wasm.verifycontractresult_root_hash(this.__wbg_ptr);
         return takeObject(ret);
     }
     /**
