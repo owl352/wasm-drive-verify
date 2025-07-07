@@ -3873,7 +3873,7 @@ export class VerifyIdentityKeysByIdentityIdResult {
     /**
      * @returns {Uint8Array[] | undefined}
      */
-    get loadedIdentityKeys() {
+    get loaded_identity_keys() {
         try {
             const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
             wasm.verifyidentitykeysbyidentityidresult_loaded_identity_keys(retptr, this.__wbg_ptr);
@@ -3897,7 +3897,7 @@ export class VerifyIdentityKeysByIdentityIdResult {
     /**
      * @returns {Uint32Array}
      */
-    get notFoundPublicKeys() {
+    get not_found_public_keys() {
         try {
             const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
             wasm.verifyidentitykeysbyidentityidresult_not_found_public_keys(retptr, this.__wbg_ptr);

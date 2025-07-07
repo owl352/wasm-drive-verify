@@ -348,8 +348,8 @@ export class VerifyIdentityKeysByIdentityIdResult {
   private constructor();
   free(): void;
   readonly root_hash: Uint8Array;
-  readonly loadedIdentityKeys: Uint8Array[] | undefined;
-  readonly notFoundPublicKeys: Uint32Array;
+  readonly loaded_identity_keys: Uint8Array[] | undefined;
+  readonly not_found_public_keys: Uint32Array;
 }
 export class VerifyIdentityNonceResult {
   private constructor();

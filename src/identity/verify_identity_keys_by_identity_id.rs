@@ -91,7 +91,7 @@ impl VerifyIdentityKeysByIdentityIdResult {
         self.root_hash.to_uint8array()
     }
 
-    #[wasm_bindgen(getter = "loadedIdentityKeys")]
+    #[wasm_bindgen(getter)]
     pub fn loaded_identity_keys(&self) -> Result<Option<Vec<Uint8Array>>, JsValue> {
         match self.identity.clone() {
             Some(identity) => {
@@ -111,7 +111,7 @@ impl VerifyIdentityKeysByIdentityIdResult {
         }
     }
 
-    #[wasm_bindgen(getter = "notFoundPublicKeys")]
+    #[wasm_bindgen(getter)]
     pub fn not_found_public_keys(&self) -> Vec<KeyID> {
         match self.identity.clone() {
             None => Vec::new(),
