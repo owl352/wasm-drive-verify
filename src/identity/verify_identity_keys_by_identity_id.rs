@@ -13,25 +13,6 @@ pub struct VerifyIdentityKeysByIdentityIdResult {
     identity: Option<PartialIdentity>,
 }
 
-#[wasm_bindgen]
-pub struct LoadedIdentityKey {
-    key_id: KeyID,
-    public_key: Uint8Array,
-}
-
-#[wasm_bindgen]
-impl LoadedIdentityKey {
-    #[wasm_bindgen(getter = "keyId")]
-    pub fn key_id(&self) -> KeyID {
-        self.key_id.clone()
-    }
-
-    #[wasm_bindgen(getter = "publicKey")]
-    pub fn public_key(&self) -> Uint8Array {
-        self.public_key.clone()
-    }
-}
-
 #[wasm_bindgen(js_name = "verifyIdentityKeysByIdentityId")]
 pub fn verify_identity_keys_by_identity_id(
     proof: &Uint8Array,
@@ -111,38 +92,35 @@ impl VerifyIdentityKeysByIdentityIdResult {
     }
 
     #[wasm_bindgen(getter = "loadedIdentityKeys")]
-    pub fn loaded_identity_keys(&self) -> Result<Vec<LoadedIdentityKey>, JsValue> {
-        let mut arr = Vec::new();
+    pub fn loaded_identity_keys(&self) -> Result<Option<Vec<Uint8Array>>, JsValue> {
         match self.identity.clone() {
             Some(identity) => {
-                for (k, v) in identity.loaded_public_keys.iter() {
-                    arr.push(LoadedIdentityKey {
-                        key_id: k.clone(),
-                        public_key: Uint8Array::from(
-                            v.serialize_to_bytes()
-                                .map_err(|err| JsValue::from(err.to_string()))?
-                                .as_slice(),
-                        ),
-                    });
-                }
-            }
-            None => {}
-        }
+                let mut arr = Vec::new();
 
-        Ok(arr)
+                for (_k, v) in identity.loaded_public_keys.iter() {
+                    arr.push(Uint8Array::from(
+                        v.serialize_to_bytes()
+                            .map_err(|err| JsValue::from(err.to_string()))?
+                            .as_slice(),
+                    ));
+                }
+                
+                Ok(Some(arr))
+            }
+            None => Ok(None),
+        }
     }
 
     #[wasm_bindgen(getter = "notFoundPublicKeys")]
-    pub fn not_found_public_keys(&self) -> Option<Vec<KeyID>> {
+    pub fn not_found_public_keys(&self) -> Vec<KeyID> {
         match self.identity.clone() {
-            None => None,
-            Some(identity) => Some(
+            None => Vec::new(),
+            Some(identity) =>
                 identity
                     .not_found_public_keys
                     .iter()
                     .map(|key_id| key_id.clone())
                     .collect(),
-            ),
         }
     }
 }

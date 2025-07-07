@@ -134,12 +134,6 @@ export function tokenDirectPurchasePriceQuery(token_id: Uint8Array): TokenTransi
 export function groupActiveAndClosedActionSingleSignerQuery(contract_id: Uint8Array, group_contract_position: number, action_id: Uint8Array, identity_id: Uint8Array): TokenTransitionPathQueryResult;
 export function verifyStateTransitionWasExecutedWithProof(state_transition_js: any, block_height: bigint, block_time_ms: bigint, block_core_height: number, proof: Uint8Array, known_contracts_js: any, platform_version_number: number): VerifyStateTransitionWasExecutedWithProofResult;
 export function main(): void;
-export class LoadedIdentityKey {
-  private constructor();
-  free(): void;
-  readonly keyId: number;
-  readonly publicKey: Uint8Array;
-}
 /**
  * WASM wrapper for SingleDocumentDriveQuery
  */
@@ -354,8 +348,8 @@ export class VerifyIdentityKeysByIdentityIdResult {
   private constructor();
   free(): void;
   readonly root_hash: Uint8Array;
-  readonly loadedIdentityKeys: LoadedIdentityKey[];
-  readonly notFoundPublicKeys: Uint32Array | undefined;
+  readonly loadedIdentityKeys: Uint8Array[] | undefined;
+  readonly notFoundPublicKeys: Uint32Array;
 }
 export class VerifyIdentityNonceResult {
   private constructor();
@@ -547,9 +541,6 @@ export interface InitOutput {
   readonly verifyIdentityIdsByUniquePublicKeyHashesVec: (a: number, b: number, c: number, d: number, e: number) => void;
   readonly verifyIdentityIdsByUniquePublicKeyHashesMap: (a: number, b: number, c: number, d: number, e: number) => void;
   readonly __wbg_verifyidentitykeysbyidentityidresult_free: (a: number, b: number) => void;
-  readonly __wbg_loadedidentitykey_free: (a: number, b: number) => void;
-  readonly loadedidentitykey_key_id: (a: number) => number;
-  readonly loadedidentitykey_public_key: (a: number) => number;
   readonly verifyIdentityKeysByIdentityId: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number) => void;
   readonly verifyidentitykeysbyidentityidresult_root_hash: (a: number) => number;
   readonly verifyidentitykeysbyidentityidresult_loaded_identity_keys: (a: number, b: number) => void;

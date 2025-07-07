@@ -2457,47 +2457,6 @@ export function main() {
     wasm.main();
 }
 
-const LoadedIdentityKeyFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
-    : new FinalizationRegistry(ptr => wasm.__wbg_loadedidentitykey_free(ptr >>> 0, 1));
-
-export class LoadedIdentityKey {
-
-    static __wrap(ptr) {
-        ptr = ptr >>> 0;
-        const obj = Object.create(LoadedIdentityKey.prototype);
-        obj.__wbg_ptr = ptr;
-        LoadedIdentityKeyFinalization.register(obj, obj.__wbg_ptr, obj);
-        return obj;
-    }
-
-    __destroy_into_raw() {
-        const ptr = this.__wbg_ptr;
-        this.__wbg_ptr = 0;
-        LoadedIdentityKeyFinalization.unregister(this);
-        return ptr;
-    }
-
-    free() {
-        const ptr = this.__destroy_into_raw();
-        wasm.__wbg_loadedidentitykey_free(ptr, 0);
-    }
-    /**
-     * @returns {number}
-     */
-    get keyId() {
-        const ret = wasm.loadedidentitykey_key_id(this.__wbg_ptr);
-        return ret >>> 0;
-    }
-    /**
-     * @returns {Uint8Array}
-     */
-    get publicKey() {
-        const ret = wasm.loadedidentitykey_public_key(this.__wbg_ptr);
-        return takeObject(ret);
-    }
-}
-
 const SingleDocumentDriveQueryWasmFinalization = (typeof FinalizationRegistry === 'undefined')
     ? { register: () => {}, unregister: () => {} }
     : new FinalizationRegistry(ptr => wasm.__wbg_singledocumentdrivequerywasm_free(ptr >>> 0, 1));
@@ -3912,7 +3871,7 @@ export class VerifyIdentityKeysByIdentityIdResult {
         return takeObject(ret);
     }
     /**
-     * @returns {LoadedIdentityKey[]}
+     * @returns {Uint8Array[] | undefined}
      */
     get loadedIdentityKeys() {
         try {
@@ -3925,15 +3884,18 @@ export class VerifyIdentityKeysByIdentityIdResult {
             if (r3) {
                 throw takeObject(r2);
             }
-            var v1 = getArrayJsValueFromWasm0(r0, r1).slice();
-            wasm.__wbindgen_export_1(r0, r1 * 4, 4);
+            let v1;
+            if (r0 !== 0) {
+                v1 = getArrayJsValueFromWasm0(r0, r1).slice();
+                wasm.__wbindgen_export_1(r0, r1 * 4, 4);
+            }
             return v1;
         } finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
     /**
-     * @returns {Uint32Array | undefined}
+     * @returns {Uint32Array}
      */
     get notFoundPublicKeys() {
         try {
@@ -3941,11 +3903,8 @@ export class VerifyIdentityKeysByIdentityIdResult {
             wasm.verifyidentitykeysbyidentityidresult_not_found_public_keys(retptr, this.__wbg_ptr);
             var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
             var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
-            let v1;
-            if (r0 !== 0) {
-                v1 = getArrayU32FromWasm0(r0, r1).slice();
-                wasm.__wbindgen_export_1(r0, r1 * 4, 4);
-            }
+            var v1 = getArrayU32FromWasm0(r0, r1).slice();
+            wasm.__wbindgen_export_1(r0, r1 * 4, 4);
             return v1;
         } finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
@@ -5243,10 +5202,6 @@ function __wbg_get_imports() {
     imports.wbg.__wbg_length_e2d2a49132c1b256 = function(arg0) {
         const ret = getObject(arg0).length;
         return ret;
-    };
-    imports.wbg.__wbg_loadedidentitykey_new = function(arg0) {
-        const ret = LoadedIdentityKey.__wrap(arg0);
-        return addHeapObject(ret);
     };
     imports.wbg.__wbg_msCrypto_0a36e2ec3a343d26 = function(arg0) {
         const ret = getObject(arg0).msCrypto;

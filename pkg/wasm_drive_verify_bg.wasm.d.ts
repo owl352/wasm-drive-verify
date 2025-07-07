@@ -24,9 +24,6 @@ export const verifyIdentityIdByUniquePublicKeyHash: (a: number, b: number, c: nu
 export const verifyIdentityIdsByUniquePublicKeyHashesVec: (a: number, b: number, c: number, d: number, e: number) => void;
 export const verifyIdentityIdsByUniquePublicKeyHashesMap: (a: number, b: number, c: number, d: number, e: number) => void;
 export const __wbg_verifyidentitykeysbyidentityidresult_free: (a: number, b: number) => void;
-export const __wbg_loadedidentitykey_free: (a: number, b: number) => void;
-export const loadedidentitykey_key_id: (a: number) => number;
-export const loadedidentitykey_public_key: (a: number) => number;
 export const verifyIdentityKeysByIdentityId: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number) => void;
 export const verifyidentitykeysbyidentityidresult_root_hash: (a: number) => number;
 export const verifyidentitykeysbyidentityidresult_loaded_identity_keys: (a: number, b: number) => void;
