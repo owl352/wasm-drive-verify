@@ -5,14 +5,18 @@ use crate::utils::error::{
 };
 use crate::utils::getters::VecU8ToUint8Array;
 use crate::utils::platform_version::get_platform_version_with_validation;
-use dpp::document::serialization_traits::DocumentPlatformConversionMethodsV0;
 use dpp::data_contract::accessors::v0::DataContractV0Getters;
-use dpp::data_contract::DataContract;
+use dpp::data_contract::{DataContract, JsonValue};
+use dpp::document::serialization_traits::DocumentPlatformConversionMethodsV0;
 use dpp::platform_value::Value;
 use dpp::serialization::PlatformDeserializableWithPotentialValidationFromVersionedStructure;
+use drive::query::WhereOperator::{
+    Between, BetweenExcludeBounds, BetweenExcludeLeft, BetweenExcludeRight, Equal, GreaterThan,
+    GreaterThanOrEquals, In, LessThan, LessThanOrEquals, StartsWith,
+};
 use drive::query::{DriveDocumentQuery, InternalClauses, OrderClause, WhereClause, WhereOperator};
 use indexmap::IndexMap;
-use js_sys::{Array, Object, Reflect, Uint8Array};
+use js_sys::{Array, Function, Object, Reflect, Uint8Array};
 use serde_wasm_bindgen::from_value;
 use std::collections::BTreeMap;
 use wasm_bindgen::prelude::*;
@@ -34,6 +38,18 @@ impl VerifyDocumentProofResult {
     pub fn documents(&self) -> Array {
         self.documents.clone()
     }
+}
+
+pub fn stringify(data: &JsValue) -> Result<String, JsValue> {
+    let replacer_func = Function::new_with_args(
+        "key, value",
+        "return (value != undefined && value.type=='Buffer')  ? value.data : value ",
+    );
+
+    let data_string: String =
+        js_sys::JSON::stringify_with_replacer(data, &JsValue::from(replacer_func))?.into();
+
+    Ok(data_string)
 }
 
 #[wasm_bindgen(js_name = "verifyDocumentProof")]
@@ -80,8 +96,55 @@ pub fn verify_document_proof(
             format_result_error_with_context(ErrorCategory::NotFoundError, document_type_name, e)
         })?;
 
+    let query_clauses_array = Array::from(where_clauses);
+    let mut query_where_clauses: Vec<WhereClause> = Vec::new();
+
+    for clause in query_clauses_array.iter() {
+        let clause_array = Array::from(&clause.clone());
+
+        let js_field = Array::get(&clause_array, 0);
+        let js_operator = Array::get(&clause_array, 1);
+        let js_value = Array::get(&clause_array, 2);
+
+        let field = js_field.as_string().unwrap();
+        
+        let operator = match js_operator.as_string().unwrap().as_str() {
+            "=" | "==" => Some(Equal),
+            ">" => Some(GreaterThan),
+            ">=" => Some(GreaterThanOrEquals),
+            "<" => Some(LessThan),
+            "<=" => Some(LessThanOrEquals),
+            "Between" | "between" => Some(Between),
+            "BetweenExcludeBounds"
+            | "betweenExcludeBounds"
+            | "betweenexcludebounds"
+            | "between_exclude_bounds" => Some(BetweenExcludeBounds),
+            "BetweenExcludeLeft"
+            | "betweenExcludeLeft"
+            | "betweenexcludeleft"
+            | "between_exclude_left" => Some(BetweenExcludeLeft),
+            "BetweenExcludeRight"
+            | "betweenExcludeRight"
+            | "betweenexcluderight"
+            | "between_exclude_right" => Some(BetweenExcludeRight),
+            "In" | "in" => Some(In),
+            "StartsWith" | "startsWith" | "startswith" | "starts_with" => Some(StartsWith),
+            &_ => None,
+        }.unwrap();
+
+        let value: Value = serde_json::from_str::<JsonValue>(&stringify(&js_value)?)
+            .map_err(|err| JsError::from(err))?
+            .into();
+
+        query_where_clauses.push(WhereClause {
+            field,
+            operator,
+            value,
+        })
+    }
+
     // Parse where clauses
-    let internal_clauses = parse_internal_clauses(where_clauses)?;
+    let internal_clauses = InternalClauses::extract_from_clauses(query_where_clauses).map_err(JsError::from)?;
 
     // Parse order by
     let order_by_map = parse_order_by(order_by)?;
@@ -122,7 +185,8 @@ pub fn verify_document_proof(
             document_type,
             &contract.clone(),
             &platform_version,
-        ).map_err(|err| JsError::from(err))?;
+        )
+        .map_err(|err| JsError::from(err))?;
 
         js_array.push(&JsValue::from(doc_js));
     }
