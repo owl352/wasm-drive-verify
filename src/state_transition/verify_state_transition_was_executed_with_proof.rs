@@ -1,3 +1,4 @@
+use crate::identity::VerifyIdentityKeysByIdentityIdResult;
 use crate::utils::getters::VecU8ToUint8Array;
 use dpp::block::block_info::BlockInfo;
 use dpp::data_contract::DataContract;
@@ -12,9 +13,6 @@ use serde_wasm_bindgen::{from_value, to_value};
 use std::collections::HashMap;
 use std::sync::Arc;
 use wasm_bindgen::prelude::*;
-
-// Import the partial identity serialization function from the identity module
-use crate::identity::verify_identity_keys_by_identity_id::partial_identity_to_js;
 
 #[wasm_bindgen]
 pub struct VerifyStateTransitionWasExecutedWithProofResult {
@@ -190,11 +188,15 @@ fn convert_proof_result_to_js(
             )
             .map_err(|_| JsValue::from_str("Failed to set type"))?;
 
-            let partial_identity_js = partial_identity_to_js(_partial_identity)?;
+            let partial_identity_js = VerifyIdentityKeysByIdentityIdResult::new(
+                Vec::new(),
+                Some(_partial_identity.clone()),
+            );
+
             Reflect::set(
                 &obj,
                 &JsValue::from_str("partialIdentity"),
-                &partial_identity_js,
+                &JsValue::from(partial_identity_js),
             )
             .map_err(|_| JsValue::from_str("Failed to set partialIdentity"))?;
         }

@@ -614,6 +614,29 @@ export function verifyIdentityKeysByIdentityId(proof, identity_id, specific_key_
     }
 }
 
+function getArrayJsValueFromWasm0(ptr, len) {
+    ptr = ptr >>> 0;
+    const mem = getDataViewMemory0();
+    const result = [];
+    for (let i = ptr; i < ptr + 4 * len; i += 4) {
+        result.push(takeObject(mem.getUint32(i, true)));
+    }
+    return result;
+}
+
+let cachedUint32ArrayMemory0 = null;
+
+function getUint32ArrayMemory0() {
+    if (cachedUint32ArrayMemory0 === null || cachedUint32ArrayMemory0.byteLength === 0) {
+        cachedUint32ArrayMemory0 = new Uint32Array(wasm.memory.buffer);
+    }
+    return cachedUint32ArrayMemory0;
+}
+
+function getArrayU32FromWasm0(ptr, len) {
+    ptr = ptr >>> 0;
+    return getUint32ArrayMemory0().subarray(ptr / 4, ptr / 4 + len);
+}
 /**
  * @param {Uint8Array} proof
  * @param {Uint8Array} identity_id
@@ -2434,6 +2457,47 @@ export function main() {
     wasm.main();
 }
 
+const LoadedIdentityKeyFinalization = (typeof FinalizationRegistry === 'undefined')
+    ? { register: () => {}, unregister: () => {} }
+    : new FinalizationRegistry(ptr => wasm.__wbg_loadedidentitykey_free(ptr >>> 0, 1));
+
+export class LoadedIdentityKey {
+
+    static __wrap(ptr) {
+        ptr = ptr >>> 0;
+        const obj = Object.create(LoadedIdentityKey.prototype);
+        obj.__wbg_ptr = ptr;
+        LoadedIdentityKeyFinalization.register(obj, obj.__wbg_ptr, obj);
+        return obj;
+    }
+
+    __destroy_into_raw() {
+        const ptr = this.__wbg_ptr;
+        this.__wbg_ptr = 0;
+        LoadedIdentityKeyFinalization.unregister(this);
+        return ptr;
+    }
+
+    free() {
+        const ptr = this.__destroy_into_raw();
+        wasm.__wbg_loadedidentitykey_free(ptr, 0);
+    }
+    /**
+     * @returns {number}
+     */
+    get keyId() {
+        const ret = wasm.loadedidentitykey_key_id(this.__wbg_ptr);
+        return ret >>> 0;
+    }
+    /**
+     * @returns {Uint8Array}
+     */
+    get publicKey() {
+        const ret = wasm.loadedidentitykey_public_key(this.__wbg_ptr);
+        return takeObject(ret);
+    }
+}
+
 const SingleDocumentDriveQueryWasmFinalization = (typeof FinalizationRegistry === 'undefined')
     ? { register: () => {}, unregister: () => {} }
     : new FinalizationRegistry(ptr => wasm.__wbg_singledocumentdrivequerywasm_free(ptr >>> 0, 1));
@@ -3322,15 +3386,27 @@ export class VerifyFullIdentityByUniquePublicKeyHashResult {
      * @returns {Uint8Array}
      */
     get root_hash() {
-        const ret = wasm.verifyactioninfosincontractresult_root_hash(this.__wbg_ptr);
+        const ret = wasm.verifycontractresult_root_hash(this.__wbg_ptr);
         return takeObject(ret);
     }
     /**
-     * @returns {any}
+     * @returns {Uint8Array | undefined}
      */
     get identity() {
-        const ret = wasm.verifyactioninfosincontractresult_actions(this.__wbg_ptr);
-        return takeObject(ret);
+        try {
+            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+            wasm.singledocumentproofresult_documentSerialized(retptr, this.__wbg_ptr);
+            var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
+            var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
+            let v1;
+            if (r0 !== 0) {
+                v1 = getArrayU8FromWasm0(r0, r1).slice();
+                wasm.__wbindgen_export_1(r0, r1 * 1, 1);
+            }
+            return v1;
+        } finally {
+            wasm.__wbindgen_add_to_stack_pointer(16);
+        }
     }
 }
 
@@ -3832,15 +3908,48 @@ export class VerifyIdentityKeysByIdentityIdResult {
      * @returns {Uint8Array}
      */
     get root_hash() {
-        const ret = wasm.verifyactioninfosincontractresult_root_hash(this.__wbg_ptr);
+        const ret = wasm.verifyidentitykeysbyidentityidresult_root_hash(this.__wbg_ptr);
         return takeObject(ret);
     }
     /**
-     * @returns {any}
+     * @returns {LoadedIdentityKey[]}
      */
-    get identity() {
-        const ret = wasm.verifyactioninfosincontractresult_actions(this.__wbg_ptr);
-        return takeObject(ret);
+    get loadedIdentityKeys() {
+        try {
+            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+            wasm.verifyidentitykeysbyidentityidresult_loaded_identity_keys(retptr, this.__wbg_ptr);
+            var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
+            var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
+            var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
+            var r3 = getDataViewMemory0().getInt32(retptr + 4 * 3, true);
+            if (r3) {
+                throw takeObject(r2);
+            }
+            var v1 = getArrayJsValueFromWasm0(r0, r1).slice();
+            wasm.__wbindgen_export_1(r0, r1 * 4, 4);
+            return v1;
+        } finally {
+            wasm.__wbindgen_add_to_stack_pointer(16);
+        }
+    }
+    /**
+     * @returns {Uint32Array | undefined}
+     */
+    get notFoundPublicKeys() {
+        try {
+            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+            wasm.verifyidentitykeysbyidentityidresult_not_found_public_keys(retptr, this.__wbg_ptr);
+            var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
+            var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
+            let v1;
+            if (r0 !== 0) {
+                v1 = getArrayU32FromWasm0(r0, r1).slice();
+                wasm.__wbindgen_export_1(r0, r1 * 4, 4);
+            }
+            return v1;
+        } finally {
+            wasm.__wbindgen_add_to_stack_pointer(16);
+        }
     }
 }
 
@@ -5135,6 +5244,10 @@ function __wbg_get_imports() {
         const ret = getObject(arg0).length;
         return ret;
     };
+    imports.wbg.__wbg_loadedidentitykey_new = function(arg0) {
+        const ret = LoadedIdentityKey.__wrap(arg0);
+        return addHeapObject(ret);
+    };
     imports.wbg.__wbg_msCrypto_0a36e2ec3a343d26 = function(arg0) {
         const ret = getObject(arg0).msCrypto;
         return addHeapObject(ret);
@@ -5244,6 +5357,10 @@ function __wbg_get_imports() {
     };
     imports.wbg.__wbg_value_cd1ffa7b1ab794f1 = function(arg0) {
         const ret = getObject(arg0).value;
+        return addHeapObject(ret);
+    };
+    imports.wbg.__wbg_verifyidentitykeysbyidentityidresult_new = function(arg0) {
+        const ret = VerifyIdentityKeysByIdentityIdResult.__wrap(arg0);
         return addHeapObject(ret);
     };
     imports.wbg.__wbg_versions_c71aa1626a93e0a1 = function(arg0) {
@@ -5383,6 +5500,7 @@ function __wbg_finalize_init(instance, module) {
     wasm = instance.exports;
     __wbg_init.__wbindgen_wasm_module = module;
     cachedDataViewMemory0 = null;
+    cachedUint32ArrayMemory0 = null;
     cachedUint8ArrayMemory0 = null;
 
 

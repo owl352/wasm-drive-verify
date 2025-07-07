@@ -1,14 +1,16 @@
+use std::convert::identity;
 use crate::utils::getters::VecU8ToUint8Array;
 use crate::utils::serialization::identity_to_js_value;
 use dpp::version::PlatformVersion;
 use drive::drive::Drive;
 use js_sys::Uint8Array;
 use wasm_bindgen::prelude::*;
+use dpp::serialization::PlatformSerializable;
 
 #[wasm_bindgen]
 pub struct VerifyFullIdentityByUniquePublicKeyHashResult {
     root_hash: Vec<u8>,
-    identity: JsValue,
+    identity: Option<Vec<u8>>,
 }
 
 #[wasm_bindgen]
@@ -19,7 +21,7 @@ impl VerifyFullIdentityByUniquePublicKeyHashResult {
     }
 
     #[wasm_bindgen(getter)]
-    pub fn identity(&self) -> JsValue {
+    pub fn identity(&self) -> Option<Vec<u8>> {
         self.identity.clone()
     }
 }
@@ -48,8 +50,8 @@ pub fn verify_full_identity_by_unique_public_key_hash(
     .map_err(|e| JsValue::from_str(&format!("Verification failed: {:?}", e)))?;
 
     let identity_js = match identity_option {
-        Some(identity) => identity_to_js_value(identity)?,
-        None => JsValue::NULL,
+        Some(identity) => Some(identity.serialize_to_bytes().map_err(|err| JsValue::from(err.to_string()))?),
+        None => None,
     };
 
     Ok(VerifyFullIdentityByUniquePublicKeyHashResult {

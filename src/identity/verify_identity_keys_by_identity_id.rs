@@ -1,98 +1,34 @@
 use crate::utils::getters::VecU8ToUint8Array;
-use dpp::identity::identity_public_key::IdentityPublicKey;
-use dpp::identity::PartialIdentity;
+use dpp::identity::{KeyID, PartialIdentity};
+use dpp::serialization::PlatformSerializable;
 use dpp::version::PlatformVersion;
 use drive::drive::identity::key::fetch::{IdentityKeysRequest, KeyRequestType};
 use drive::drive::Drive;
-use js_sys::{Array, Object, Reflect, Uint8Array};
+use js_sys::{Array, Uint8Array};
 use wasm_bindgen::prelude::*;
-use dpp::serialization::PlatformSerializable;
-
-// Helper function to convert PartialIdentity to JS object
-pub fn partial_identity_to_js(identity: &PartialIdentity) -> Result<JsValue, JsValue> {
-    let obj = Object::new();
-
-    // Set id
-    let id_array = Uint8Array::from(identity.id.as_slice());
-    Reflect::set(&obj, &JsValue::from_str("id"), &id_array)
-        .map_err(|_| JsValue::from_str("Failed to set id"))?;
-
-    // Set loadedPublicKeys
-    let keys_obj = Object::new();
-    for (key_id, public_key) in &identity.loaded_public_keys {
-        // Serialize the full IdentityPublicKey
-        let serialized_key = public_key.serialize_to_bytes().map_err(|err| JsValue::from(err.to_string()))?;
-
-        // Merge the serialized key properties into the key object
-        Reflect::set(&keys_obj, &JsValue::from_str(&key_id.to_string()), &JsValue::from(serialized_key))
-            .map_err(|_| JsValue::from_str("Failed to set key in map"))?;
-    }
-    Reflect::set(&obj, &JsValue::from_str("loadedPublicKeys"), &keys_obj)
-        .map_err(|_| JsValue::from_str("Failed to set loadedPublicKeys"))?;
-
-    // Set balance
-    match identity.balance {
-        Some(balance) => {
-            Reflect::set(
-                &obj,
-                &JsValue::from_str("balance"),
-                &JsValue::from_str(&balance.to_string()),
-            )
-            .map_err(|_| JsValue::from_str("Failed to set balance"))?;
-        }
-        None => {
-            Reflect::set(&obj, &JsValue::from_str("balance"), &JsValue::NULL)
-                .map_err(|_| JsValue::from_str("Failed to set balance to null"))?;
-        }
-    }
-
-    // Set revision
-    match identity.revision {
-        Some(revision) => {
-            Reflect::set(
-                &obj,
-                &JsValue::from_str("revision"),
-                &JsValue::from_str(&revision.to_string()),
-            )
-            .map_err(|_| JsValue::from_str("Failed to set revision"))?;
-        }
-        None => {
-            Reflect::set(&obj, &JsValue::from_str("revision"), &JsValue::NULL)
-                .map_err(|_| JsValue::from_str("Failed to set revision to null"))?;
-        }
-    }
-
-    // Set notFoundPublicKeys
-    let not_found_array = Array::new();
-    for key_id in &identity.not_found_public_keys {
-        not_found_array.push(&JsValue::from_str(&key_id.to_string()));
-    }
-    Reflect::set(
-        &obj,
-        &JsValue::from_str("notFoundPublicKeys"),
-        &not_found_array,
-    )
-    .map_err(|_| JsValue::from_str("Failed to set notFoundPublicKeys"))?;
-
-    Ok(obj.into())
-}
 
 #[wasm_bindgen]
 pub struct VerifyIdentityKeysByIdentityIdResult {
     root_hash: Vec<u8>,
-    identity: JsValue,
+    identity: Option<PartialIdentity>,
 }
 
 #[wasm_bindgen]
-impl VerifyIdentityKeysByIdentityIdResult {
-    #[wasm_bindgen(getter)]
-    pub fn root_hash(&self) -> Uint8Array {
-        self.root_hash.to_uint8array()
+pub struct LoadedIdentityKey {
+    key_id: KeyID,
+    public_key: Uint8Array,
+}
+
+#[wasm_bindgen]
+impl LoadedIdentityKey {
+    #[wasm_bindgen(getter = "keyId")]
+    pub fn key_id(&self) -> KeyID {
+        self.key_id.clone()
     }
 
-    #[wasm_bindgen(getter)]
-    pub fn identity(&self) -> JsValue {
-        self.identity.clone()
+    #[wasm_bindgen(getter = "publicKey")]
+    pub fn public_key(&self) -> Uint8Array {
+        self.public_key.clone()
     }
 }
 
@@ -152,112 +88,61 @@ pub fn verify_identity_keys_by_identity_id(
     )
     .map_err(|e| JsValue::from_str(&format!("Verification failed: {:?}", e)))?;
 
-    let identity_js = match identity_option {
-        Some(identity) => partial_identity_to_js(&identity)?,
-        None => JsValue::NULL,
-    };
-
     Ok(VerifyIdentityKeysByIdentityIdResult {
         root_hash: root_hash.to_vec(),
-        identity: identity_js,
+        identity: identity_option,
     })
 }
 
-// Helper function to serialize IdentityPublicKey to JS object
-fn serialize_identity_public_key(key: &IdentityPublicKey) -> Result<Object, JsValue> {
-    let obj = Object::new();
-
-    match key {
-        IdentityPublicKey::V0(key_v0) => {
-            // Set id
-            Reflect::set(&obj, &JsValue::from_str("id"), &JsValue::from(key_v0.id))
-                .map_err(|_| JsValue::from_str("Failed to set key id"))?;
-
-            // Set purpose (as number)
-            Reflect::set(
-                &obj,
-                &JsValue::from_str("purpose"),
-                &JsValue::from(key_v0.purpose as u8),
-            )
-            .map_err(|_| JsValue::from_str("Failed to set purpose"))?;
-
-            // Set security level (as number)
-            Reflect::set(
-                &obj,
-                &JsValue::from_str("securityLevel"),
-                &JsValue::from(key_v0.security_level as u8),
-            )
-            .map_err(|_| JsValue::from_str("Failed to set security level"))?;
-
-            // Set contract bounds (optional)
-            match &key_v0.contract_bounds {
-                Some(bounds) => {
-                    let bounds_obj = Object::new();
-                    match bounds {
-                        dpp::identity::identity_public_key::contract_bounds::ContractBounds::SingleContract { id } => {
-                            Reflect::set(&bounds_obj, &JsValue::from_str("type"), &JsValue::from_str("SingleContract"))
-                                .map_err(|_| JsValue::from_str("Failed to set bounds type"))?;
-                            let id_array = Uint8Array::from(id.as_slice());
-                            Reflect::set(&bounds_obj, &JsValue::from_str("id"), &id_array)
-                                .map_err(|_| JsValue::from_str("Failed to set bounds id"))?;
-                        }
-                        dpp::identity::identity_public_key::contract_bounds::ContractBounds::SingleContractDocumentType { id, document_type_name } => {
-                            Reflect::set(&bounds_obj, &JsValue::from_str("type"), &JsValue::from_str("SingleContractDocumentType"))
-                                .map_err(|_| JsValue::from_str("Failed to set bounds type"))?;
-                            let id_array = Uint8Array::from(id.as_slice());
-                            Reflect::set(&bounds_obj, &JsValue::from_str("id"), &id_array)
-                                .map_err(|_| JsValue::from_str("Failed to set bounds id"))?;
-                            Reflect::set(&bounds_obj, &JsValue::from_str("documentTypeName"), &JsValue::from_str(document_type_name))
-                                .map_err(|_| JsValue::from_str("Failed to set document type name"))?;
-                        }
-                    }
-                    Reflect::set(&obj, &JsValue::from_str("contractBounds"), &bounds_obj)
-                        .map_err(|_| JsValue::from_str("Failed to set contract bounds"))?;
-                }
-                None => {
-                    Reflect::set(&obj, &JsValue::from_str("contractBounds"), &JsValue::NULL)
-                        .map_err(|_| JsValue::from_str("Failed to set contract bounds to null"))?;
-                }
-            }
-
-            // Set key type (as number)
-            Reflect::set(
-                &obj,
-                &JsValue::from_str("type"),
-                &JsValue::from(key_v0.key_type as u8),
-            )
-            .map_err(|_| JsValue::from_str("Failed to set key type"))?;
-
-            // Set read only flag
-            Reflect::set(
-                &obj,
-                &JsValue::from_str("readOnly"),
-                &JsValue::from_bool(key_v0.read_only),
-            )
-            .map_err(|_| JsValue::from_str("Failed to set read only"))?;
-
-            // Set key data (as Uint8Array)
-            let data_array = Uint8Array::from(key_v0.data.as_slice());
-            Reflect::set(&obj, &JsValue::from_str("data"), &data_array)
-                .map_err(|_| JsValue::from_str("Failed to set key data"))?;
-
-            // Set disabled_at (optional timestamp)
-            match key_v0.disabled_at {
-                Some(timestamp) => {
-                    Reflect::set(
-                        &obj,
-                        &JsValue::from_str("disabledAt"),
-                        &JsValue::from_str(&timestamp.to_string()),
-                    )
-                    .map_err(|_| JsValue::from_str("Failed to set disabled at"))?;
-                }
-                None => {
-                    Reflect::set(&obj, &JsValue::from_str("disabledAt"), &JsValue::NULL)
-                        .map_err(|_| JsValue::from_str("Failed to set disabled at to null"))?;
-                }
-            }
+impl VerifyIdentityKeysByIdentityIdResult {
+    pub fn new(root_hash: Vec<u8>, partial_identity: Option<PartialIdentity>) -> Self {
+        VerifyIdentityKeysByIdentityIdResult {
+            root_hash,
+            identity: partial_identity,
         }
     }
+}
 
-    Ok(obj)
+#[wasm_bindgen]
+impl VerifyIdentityKeysByIdentityIdResult {
+    #[wasm_bindgen(getter)]
+    pub fn root_hash(&self) -> Uint8Array {
+        self.root_hash.to_uint8array()
+    }
+
+    #[wasm_bindgen(getter = "loadedIdentityKeys")]
+    pub fn loaded_identity_keys(&self) -> Result<Vec<LoadedIdentityKey>, JsValue> {
+        let mut arr = Vec::new();
+        match self.identity.clone() {
+            Some(identity) => {
+                for (k, v) in identity.loaded_public_keys.iter() {
+                    arr.push(LoadedIdentityKey {
+                        key_id: k.clone(),
+                        public_key: Uint8Array::from(
+                            v.serialize_to_bytes()
+                                .map_err(|err| JsValue::from(err.to_string()))?
+                                .as_slice(),
+                        ),
+                    });
+                }
+            }
+            None => {}
+        }
+
+        Ok(arr)
+    }
+
+    #[wasm_bindgen(getter = "notFoundPublicKeys")]
+    pub fn not_found_public_keys(&self) -> Option<Vec<KeyID>> {
+        match self.identity.clone() {
+            None => None,
+            Some(identity) => Some(
+                identity
+                    .not_found_public_keys
+                    .iter()
+                    .map(|key_id| key_id.clone())
+                    .collect(),
+            ),
+        }
+    }
 }
