@@ -671,19 +671,18 @@ export function verifyIdentityRevisionForIdentityId(proof, identity_id, verify_s
  * @param {any} where_clauses
  * @param {any} order_by
  * @param {number | null | undefined} limit
- * @param {number | null | undefined} offset
  * @param {Uint8Array | null | undefined} start_at
  * @param {boolean} start_at_included
  * @param {bigint | null | undefined} block_time_ms
  * @param {number} platform_version_number
  * @returns {VerifyDocumentProofResult}
  */
-export function verifyDocumentProof(proof, contract_js, document_type_name, where_clauses, order_by, limit, offset, start_at, start_at_included, block_time_ms, platform_version_number) {
+export function verifyDocumentProof(proof, contract_js, document_type_name, where_clauses, order_by, limit, start_at, start_at_included, block_time_ms, platform_version_number) {
     try {
         const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
         const ptr0 = passStringToWasm0(document_type_name, wasm.__wbindgen_export_2, wasm.__wbindgen_export_3);
         const len0 = WASM_VECTOR_LEN;
-        wasm.verifyDocumentProof(retptr, addBorrowedObject(proof), addBorrowedObject(contract_js), ptr0, len0, addBorrowedObject(where_clauses), addBorrowedObject(order_by), isLikeNone(limit) ? 0xFFFFFF : limit, isLikeNone(offset) ? 0xFFFFFF : offset, isLikeNone(start_at) ? 0 : addHeapObject(start_at), start_at_included, !isLikeNone(block_time_ms), isLikeNone(block_time_ms) ? BigInt(0) : block_time_ms, platform_version_number);
+        wasm.verifyDocumentProof(retptr, addBorrowedObject(proof), addBorrowedObject(contract_js), ptr0, len0, addBorrowedObject(where_clauses), addBorrowedObject(order_by), isLikeNone(limit) ? 0xFFFFFF : limit, isLikeNone(start_at) ? 0 : addHeapObject(start_at), start_at_included, !isLikeNone(block_time_ms), isLikeNone(block_time_ms) ? BigInt(0) : block_time_ms, platform_version_number);
         var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
         var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
         var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);

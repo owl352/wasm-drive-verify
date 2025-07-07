@@ -26,7 +26,7 @@ export const verifyIdentityIdsByUniquePublicKeyHashesMap: (a: number, b: number,
 export const verifyIdentityKeysByIdentityId: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number) => void;
 export const verifyIdentityNonce: (a: number, b: number, c: number, d: number, e: number) => void;
 export const verifyIdentityRevisionForIdentityId: (a: number, b: number, c: number, d: number, e: number) => void;
-export const verifyDocumentProof: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number, k: number, l: number, m: bigint, n: number) => void;
+export const verifyDocumentProof: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number, k: number, l: bigint, m: number) => void;
 export const verifyDocumentProofKeepSerialized: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number, k: number, l: number, m: bigint, n: number) => void;
 export const verifyStartAtDocumentInProof: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number, k: number, l: number, m: bigint, n: number, o: number, p: number) => void;
 export const __wbg_singledocumentdrivequerywasm_free: (a: number, b: number) => void;

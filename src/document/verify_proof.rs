@@ -44,7 +44,6 @@ pub fn verify_document_proof(
     where_clauses: &JsValue,
     order_by: &JsValue,
     limit: Option<u16>,
-    offset: Option<u16>,
     start_at: Option<Uint8Array>,
     start_at_included: bool,
     block_time_ms: Option<u64>,
@@ -102,7 +101,7 @@ pub fn verify_document_proof(
         contract: &contract,
         document_type,
         internal_clauses,
-        offset,
+        offset: None,
         limit,
         order_by: order_by_map,
         start_at: start_at_bytes,
@@ -124,7 +123,7 @@ pub fn verify_document_proof(
             &contract.clone(),
             &platform_version,
         ).map_err(|err| JsError::from(err))?;
-        
+
         js_array.push(&JsValue::from(doc_js));
     }
 
