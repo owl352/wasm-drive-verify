@@ -96,73 +96,33 @@ pub fn verify_document_proof(
             format_result_error_with_context(ErrorCategory::NotFoundError, document_type_name, e)
         })?;
 
-    let query_clauses_array = Array::from(where_clauses);
-    let mut query_where_clauses: Vec<WhereClause> = Vec::new();
 
-    for clause in query_clauses_array.iter() {
-        let clause_array = Array::from(&clause.clone());
-
-        let js_field = Array::get(&clause_array, 0);
-        let js_operator = Array::get(&clause_array, 1);
-        let js_value = Array::get(&clause_array, 2);
-
-        let field = js_field.as_string().unwrap();
-        
-        let operator = match js_operator.as_string().unwrap().as_str() {
-            "=" | "==" => Some(Equal),
-            ">" => Some(GreaterThan),
-            ">=" => Some(GreaterThanOrEquals),
-            "<" => Some(LessThan),
-            "<=" => Some(LessThanOrEquals),
-            "Between" | "between" => Some(Between),
-            "BetweenExcludeBounds"
-            | "betweenExcludeBounds"
-            | "betweenexcludebounds"
-            | "between_exclude_bounds" => Some(BetweenExcludeBounds),
-            "BetweenExcludeLeft"
-            | "betweenExcludeLeft"
-            | "betweenexcludeleft"
-            | "between_exclude_left" => Some(BetweenExcludeLeft),
-            "BetweenExcludeRight"
-            | "betweenExcludeRight"
-            | "betweenexcluderight"
-            | "between_exclude_right" => Some(BetweenExcludeRight),
-            "In" | "in" => Some(In),
-            "StartsWith" | "startsWith" | "startswith" | "starts_with" => Some(StartsWith),
-            &_ => None,
-        }.unwrap();
-
-        let value: Value = serde_json::from_str::<JsonValue>(&stringify(&js_value)?)
-            .map_err(|err| JsError::from(err))?
-            .into();
-
-        query_where_clauses.push(WhereClause {
-            field,
-            operator,
-            value,
-        })
-    }
 
     // Parse where clauses
-    let internal_clauses = InternalClauses::extract_from_clauses(query_where_clauses).map_err(JsError::from)?;
+    let internal_clauses = match where_clauses.is_undefined() {
+        true => InternalClauses::default(),
+        false => parse_query_internal_clause(&where_clauses)?
+    };
 
     // Parse order by
     let mut order_by_map = IndexMap::new();
-    
-    let js_order_by_array = Array::from(&order_by);
-    
-    for js_order_by_value in js_order_by_array.iter() {
-        let order_by_array = Array::from(&js_order_by_value);
-        
-        let field = order_by_array.get(0).as_string().unwrap();
-        let ascending = match order_by_array.get(1).as_string().unwrap().as_str() { 
-            "desc" => false,
-            _ => true,
-        };
-        
-        let order_clause = OrderClause{ field: field.clone(), ascending };
-        
-        order_by_map.insert(field, order_clause);
+
+    if !order_by.is_undefined() {
+        let js_order_by_array = Array::from(&order_by);
+
+        for js_order_by_value in js_order_by_array.iter() {
+            let order_by_array = Array::from(&js_order_by_value);
+
+            let field = order_by_array.get(0).as_string().unwrap();
+            let ascending = match order_by_array.get(1).as_string().unwrap().as_str() {
+                "desc" => false,
+                _ => true,
+            };
+
+            let order_clause = OrderClause{ field: field.clone(), ascending };
+
+            order_by_map.insert(field, order_clause);
+        }
     }
 
     // Parse start_at
@@ -211,4 +171,55 @@ pub fn verify_document_proof(
         root_hash: root_hash.to_vec(),
         documents: js_array,
     })
+}
+
+fn parse_query_internal_clause(where_clauses: &JsValue) -> Result<InternalClauses, JsValue> {
+    let query_clauses_array = Array::from(where_clauses);
+    let mut query_where_clauses: Vec<WhereClause> = Vec::new();
+
+    for clause in query_clauses_array.iter() {
+        let clause_array = Array::from(&clause.clone());
+
+        let js_field = Array::get(&clause_array, 0);
+        let js_operator = Array::get(&clause_array, 1);
+        let js_value = Array::get(&clause_array, 2);
+
+        let field = js_field.as_string().unwrap();
+
+        let operator = match js_operator.as_string().unwrap().as_str() {
+            "=" | "==" => Some(Equal),
+            ">" => Some(GreaterThan),
+            ">=" => Some(GreaterThanOrEquals),
+            "<" => Some(LessThan),
+            "<=" => Some(LessThanOrEquals),
+            "Between" | "between" => Some(Between),
+            "BetweenExcludeBounds"
+            | "betweenExcludeBounds"
+            | "betweenexcludebounds"
+            | "between_exclude_bounds" => Some(BetweenExcludeBounds),
+            "BetweenExcludeLeft"
+            | "betweenExcludeLeft"
+            | "betweenexcludeleft"
+            | "between_exclude_left" => Some(BetweenExcludeLeft),
+            "BetweenExcludeRight"
+            | "betweenExcludeRight"
+            | "betweenexcluderight"
+            | "between_exclude_right" => Some(BetweenExcludeRight),
+            "In" | "in" => Some(In),
+            "StartsWith" | "startsWith" | "startswith" | "starts_with" => Some(StartsWith),
+            &_ => None,
+        }.unwrap();
+
+        let value: Value = serde_json::from_str::<JsonValue>(&stringify(&js_value)?)
+            .map_err(|err| JsError::from(err))?
+            .into();
+
+        query_where_clauses.push(WhereClause {
+            field,
+            operator,
+            value,
+        })
+    }
+
+    Ok(InternalClauses::extract_from_clauses(query_where_clauses).map_err(JsError::from)?)
 }
