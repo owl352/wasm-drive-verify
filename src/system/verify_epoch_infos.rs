@@ -2,8 +2,7 @@ use crate::utils::getters::VecU8ToUint8Array;
 use dpp::block::extended_epoch_info::v0::ExtendedEpochInfoV0Getters;
 use dpp::version::PlatformVersion;
 use drive::drive::Drive;
-use js_sys::{Array, Uint8Array};
-use serde_wasm_bindgen::to_value;
+use js_sys::{Array, Object, Reflect, Uint8Array};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
@@ -52,19 +51,16 @@ pub fn verify_epoch_infos(
     // Convert Vec<ExtendedEpochInfo> to JS array
     let js_array = Array::new();
     for epoch_info in epoch_infos_vec {
-        let epoch_info_json = serde_json::json!({
-            "index": epoch_info.index(),
-            "firstBlockHeight": epoch_info.first_block_height(),
-            "firstCoreBlockHeight": epoch_info.first_core_block_height(),
-            "firstBlockTime": epoch_info.first_block_time(),
-            "feeMultiplierPermille": epoch_info.fee_multiplier_permille(),
-            "protocolVersion": epoch_info.protocol_version(),
-        });
+        let epoch_info_json = Object::new();
 
-        let js_value = to_value(&epoch_info_json).map_err(|e| {
-            JsValue::from_str(&format!("Failed to convert epoch info to JsValue: {:?}", e))
-        })?;
-        js_array.push(&js_value);
+        Reflect::set(&epoch_info_json, &"number".into(), &JsValue::from(epoch_info.index()))?;
+        Reflect::set(&epoch_info_json, &"firstBlockHeight".into(), &JsValue::from(epoch_info.first_block_height()))?;
+        Reflect::set(&epoch_info_json, &"firstCoreBlockHeight".into(), &JsValue::from(epoch_info.first_core_block_height()))?;
+        Reflect::set(&epoch_info_json, &"startTime".into(), &JsValue::from(epoch_info.first_block_time()))?;
+        Reflect::set(&epoch_info_json, &"feeMultiplier".into(), &JsValue::from(epoch_info.fee_multiplier_permille()))?;
+        Reflect::set(&epoch_info_json, &"protocolVersion".into(), &JsValue::from(epoch_info.protocol_version()))?;
+
+        js_array.push(&epoch_info_json);
     }
 
     Ok(VerifyEpochInfosResult {
