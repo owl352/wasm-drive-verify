@@ -119,11 +119,28 @@ pub fn verify_vote_poll_vote_state_proof(
         // Add contenders array
         let contenders_array = Array::new();
         for contender in execution_result.contenders {
+            let vote_tally = contender.vote_tally();
+
             let id_bytes = contender
                 .identity_id()
                 .to_buffer();
+
             let id_uint8 = Uint8Array::from(&id_bytes[..]);
-            contenders_array.push(&id_uint8);
+
+            let document_bytes = contender
+                .serialized_document()
+                .clone().unwrap_or(Vec::new());
+
+            let document_uint8 = Uint8Array::from(&document_bytes[..]);
+
+
+            let contender_object = Object::new();
+
+            Reflect::set(&contender_object, &JsValue::from("identifier"), &id_uint8)?;
+            Reflect::set(&contender_object, &JsValue::from("voteCount"), &JsValue::from(vote_tally))?;
+            Reflect::set(&contender_object, &JsValue::from("document"), &document_uint8)?;
+
+            contenders_array.push(&contender_object);
         }
         Reflect::set(
             &result_obj,
