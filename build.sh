@@ -80,7 +80,7 @@ fi
 
 echo "Converting wasm binary into base64 module"
 WASM_BUILD_BASE_64=$(base64 -i "pkg/wasm_drive_verify_bg.wasm")
-echo 'export const wasmBase64 "'${WASM_BUILD_BASE_64}'"' > "pkg/wasm_drive_verify_bg.js"
+echo 'export const wasmBase64 = "'${WASM_BUILD_BASE_64}'"' > "pkg/wasm_drive_verify_bg.js"
 echo 'export { wasmBase64 } from "./wasm_drive_verify_bg.js"' >> ./pkg/wasm_drive_verify.js
 echo 'export { wasmBase64 } from "./wasm_drive_verify_bg.js"' >> ./pkg/wasm_drive_verify.d.ts
 
