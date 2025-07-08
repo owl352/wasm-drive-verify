@@ -129,8 +129,7 @@ pub fn verify_vote_poll_vote_state_proof(
 
             let document_bytes = contender
                 .serialized_document()
-                .clone().unwrap_or(Vec::new());
-
+                .clone();
 
             let contender_object = Object::new();
 
