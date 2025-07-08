@@ -131,14 +131,12 @@ pub fn verify_vote_poll_vote_state_proof(
                 .serialized_document()
                 .clone().unwrap_or(Vec::new());
 
-            let document_uint8 = Uint8Array::from(&document_bytes[..]);
-
 
             let contender_object = Object::new();
 
             Reflect::set(&contender_object, &JsValue::from("identifier"), &id_uint8)?;
             Reflect::set(&contender_object, &JsValue::from("voteCount"), &JsValue::from(vote_tally))?;
-            Reflect::set(&contender_object, &JsValue::from("document"), &document_uint8)?;
+            Reflect::set(&contender_object, &JsValue::from("document"), &JsValue::from(document_bytes))?;
 
             contenders_array.push(&contender_object);
         }
