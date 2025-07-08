@@ -5528,3 +5528,4 @@ async function __wbg_init(module_or_path) {
 
 export { initSync };
 export default __wbg_init;
+export { wasmBase64 } from "./wasm_drive_verify_bg.js"
