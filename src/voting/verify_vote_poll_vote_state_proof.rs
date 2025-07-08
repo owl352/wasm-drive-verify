@@ -1,14 +1,15 @@
 use crate::utils::getters::VecU8ToUint8Array;
 use dpp::data_contract::accessors::v0::DataContractV0Getters;
-use dpp::data_contract::DataContract;
+use dpp::data_contract::{DataContract, JsonValue};
 use dpp::identifier::Identifier;
+use dpp::platform_value::Value;
 use dpp::serialization::PlatformDeserializableWithPotentialValidationFromVersionedStructure;
 use dpp::version::PlatformVersion;
 use dpp::voting::vote_polls::contested_document_resource_vote_poll::ContestedDocumentResourceVotePoll;
 use drive::query::vote_poll_vote_state_query::{
     ContestedDocumentVotePollDriveQuery, ContestedDocumentVotePollDriveQueryResultType,
 };
-use js_sys::{Array, Object, Reflect, Uint8Array};
+use js_sys::{Array, Function, Object, Reflect, Uint8Array};
 use std::sync::Arc;
 use wasm_bindgen::prelude::*;
 
@@ -31,18 +32,42 @@ impl VerifyVotePollVoteStateProofResult {
     }
 }
 
+pub fn stringify(data: &JsValue) -> Result<String, JsValue> {
+    let replacer_func = Function::new_with_args(
+        "key, value",
+        "return (value != undefined && value.type=='Buffer')  ? value.data : value ",
+    );
+
+    let data_string: String =
+        js_sys::JSON::stringify_with_replacer(data, &JsValue::from(replacer_func))?.into();
+
+    Ok(data_string)
+}
+
 #[wasm_bindgen(js_name = "verifyVotePollVoteStateProof")]
 pub fn verify_vote_poll_vote_state_proof(
     proof: &Uint8Array,
     contract_cbor: &Uint8Array,
     document_type_name: &str,
     index_name: &str,
-    contested_document_resource_vote_poll_bytes: &Uint8Array,
-    result_type: &str, // "documents" or "values"
+    js_index_values: Vec<JsValue>,
+    result_type: i32, // "documents" or "values"
     allow_include_locked_and_abstaining_vote_tally: bool,
+    count: Option<u16>,
+    js_start_at: &JsValue,
     platform_version_number: u32,
 ) -> Result<VerifyVotePollVoteStateProofResult, JsValue> {
     let proof_vec = proof.to_vec();
+
+    let mut index_values = Vec::new();
+
+    for js_index_value in js_index_values {
+        let index_value: Value = serde_json::from_str::<JsonValue>(&stringify(&js_index_value)?)
+            .map_err(|err| JsValue::from(err.to_string()))?
+            .into();
+
+        index_values.push(index_value);
+    }
 
     // Deserialize the data contract
     let contract_bytes = contract_cbor.to_vec();
@@ -53,10 +78,15 @@ pub fn verify_vote_poll_vote_state_proof(
         .map_err(|e| JsValue::from_str(&format!("Failed to deserialize contract: {:?}", e)))?;
     let contract_arc = Arc::new(contract);
 
-    // Parse the contested document resource vote poll identifier
-    let _contested_document_resource_vote_poll: Identifier =
-        Identifier::from_bytes(&contested_document_resource_vote_poll_bytes.to_vec())
-            .map_err(|e| JsValue::from_str(&format!("Invalid vote poll identifier: {:?}", e)))?;
+    let start_at = match js_start_at.is_object() {
+        false => None,
+        true => {
+            let start_identifier = Uint8Array::from(Reflect::get(&js_start_at, &JsValue::from_str("startIdentifier"))?);
+            let start_identifier_included = Reflect::get(&js_start_at, &JsValue::from_str("startIdentifierIncluded"))?.as_bool().unwrap();
+
+            Some((Identifier::from_vec(start_identifier.to_vec()).unwrap().to_buffer(), start_identifier_included))
+        }
+    };
 
     // Create the query
     let query = ContestedDocumentVotePollDriveQuery {
@@ -64,16 +94,13 @@ pub fn verify_vote_poll_vote_state_proof(
             contract_id: contract_arc.id(),
             document_type_name: document_type_name.to_string(),
             index_name: index_name.to_string(),
-            index_values: vec![],
+            index_values,
         },
-        result_type: if result_type == "documents" {
-            ContestedDocumentVotePollDriveQueryResultType::Documents
-        } else {
-            ContestedDocumentVotePollDriveQueryResultType::DocumentsAndVoteTally
-        },
+        result_type: ContestedDocumentVotePollDriveQueryResultType::try_from(result_type)
+            .map_err(|err| JsValue::from_str(&err.to_string()))?,
         offset: None,
-        limit: None,
-        start_at: None,
+        limit: count,
+        start_at,
         allow_include_locked_and_abstaining_vote_tally,
     };
 

@@ -1964,27 +1964,38 @@ export function verifySpecializedBalance(proof, specialized_balance_id, verify_s
     }
 }
 
+function passArrayJsValueToWasm0(array, malloc) {
+    const ptr = malloc(array.length * 4, 4) >>> 0;
+    const mem = getDataViewMemory0();
+    for (let i = 0; i < array.length; i++) {
+        mem.setUint32(ptr + 4 * i, addHeapObject(array[i]), true);
+    }
+    WASM_VECTOR_LEN = array.length;
+    return ptr;
+}
 /**
  * @param {Uint8Array} proof
  * @param {Uint8Array} contract_cbor
  * @param {string} document_type_name
  * @param {string} index_name
- * @param {Uint8Array} contested_document_resource_vote_poll_bytes
- * @param {string} result_type
+ * @param {any[]} js_index_values
+ * @param {number} result_type
  * @param {boolean} allow_include_locked_and_abstaining_vote_tally
+ * @param {number | null | undefined} count
+ * @param {any} js_start_at
  * @param {number} platform_version_number
  * @returns {VerifyVotePollVoteStateProofResult}
  */
-export function verifyVotePollVoteStateProof(proof, contract_cbor, document_type_name, index_name, contested_document_resource_vote_poll_bytes, result_type, allow_include_locked_and_abstaining_vote_tally, platform_version_number) {
+export function verifyVotePollVoteStateProof(proof, contract_cbor, document_type_name, index_name, js_index_values, result_type, allow_include_locked_and_abstaining_vote_tally, count, js_start_at, platform_version_number) {
     try {
         const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
         const ptr0 = passStringToWasm0(document_type_name, wasm.__wbindgen_export_2, wasm.__wbindgen_export_3);
         const len0 = WASM_VECTOR_LEN;
         const ptr1 = passStringToWasm0(index_name, wasm.__wbindgen_export_2, wasm.__wbindgen_export_3);
         const len1 = WASM_VECTOR_LEN;
-        const ptr2 = passStringToWasm0(result_type, wasm.__wbindgen_export_2, wasm.__wbindgen_export_3);
+        const ptr2 = passArrayJsValueToWasm0(js_index_values, wasm.__wbindgen_export_2);
         const len2 = WASM_VECTOR_LEN;
-        wasm.verifyVotePollVoteStateProof(retptr, addBorrowedObject(proof), addBorrowedObject(contract_cbor), ptr0, len0, ptr1, len1, addBorrowedObject(contested_document_resource_vote_poll_bytes), ptr2, len2, allow_include_locked_and_abstaining_vote_tally, platform_version_number);
+        wasm.verifyVotePollVoteStateProof(retptr, addBorrowedObject(proof), addBorrowedObject(contract_cbor), ptr0, len0, ptr1, len1, ptr2, len2, result_type, allow_include_locked_and_abstaining_vote_tally, isLikeNone(count) ? 0xFFFFFF : count, addBorrowedObject(js_start_at), platform_version_number);
         var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
         var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
         var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
