@@ -53,17 +53,21 @@ pub fn verify_token_total_supply_and_aggregated_identity_balance(
 
     Reflect::set(
         &obj,
-        &JsValue::from_str("totalSupply"),
-        &JsValue::from_f64(total_balance.token_supply as f64),
-    )
-    .map_err(|_| JsValue::from_str("Failed to set totalSupply"))?;
+        &JsValue::from_str("tokenId"),
+        &JsValue::from(Uint8Array::from(token_id_bytes.as_slice())),
+    )?;
 
     Reflect::set(
         &obj,
-        &JsValue::from_str("aggregatedIdentityBalance"),
-        &JsValue::from_f64(total_balance.aggregated_token_account_balances as f64),
-    )
-    .map_err(|_| JsValue::from_str("Failed to set aggregatedIdentityBalance"))?;
+        &JsValue::from_str("totalSystemAmount"),
+        &JsValue::from(total_balance.token_supply),
+    )?;
+
+    Reflect::set(
+        &obj,
+        &JsValue::from_str("totalAggregatedAmountInUserAccounts"),
+        &JsValue::from(total_balance.aggregated_token_account_balances),
+    )?;
 
     let result_js = obj.into();
 

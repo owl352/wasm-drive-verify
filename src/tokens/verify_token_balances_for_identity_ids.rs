@@ -79,23 +79,15 @@ pub fn verify_token_balances_for_identity_ids_vec(
     // Convert to JS array of tuples
     let js_array = Array::new();
     for (id, balance_option) in balances_vec {
-        let tuple_array = Array::new();
+        let balance_object = Object::new();
 
         // Add identity ID as Uint8Array
         let id_uint8 = Uint8Array::from(&id[..]);
-        tuple_array.push(&id_uint8);
 
-        // Add balance
-        match balance_option {
-            Some(amount) => {
-                tuple_array.push(&JsValue::from_f64(amount as f64));
-            }
-            None => {
-                tuple_array.push(&JsValue::NULL);
-            }
-        }
-
-        js_array.push(&tuple_array);
+        Reflect::set(&balance_object, &JsValue::from_str("identityId"), &JsValue::from(id_uint8))?;
+        Reflect::set(&balance_object, &JsValue::from_str("balance"), &JsValue::from(balance_option))?;
+        
+        js_array.push(&balance_object);
     }
 
     Ok(VerifyTokenBalancesForIdentityIdsResult {

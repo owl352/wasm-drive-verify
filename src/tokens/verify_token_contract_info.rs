@@ -64,7 +64,7 @@ pub fn verify_token_contract_info(
             Reflect::set(
                 &obj,
                 &JsValue::from_str("tokenContractPosition"),
-                &JsValue::from_str(&info.token_contract_position().to_string()),
+                &JsValue::from(info.token_contract_position()),
             )
             .map_err(|_| JsValue::from_str("Failed to set tokenContractPosition"))?;
 
