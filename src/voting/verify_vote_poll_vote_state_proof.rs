@@ -119,13 +119,11 @@ pub fn verify_vote_poll_vote_state_proof(
         // Add contenders array
         let contenders_array = Array::new();
         for contender in execution_result.contenders {
-            let doc_bytes = contender
-                .serialized_document()
-                .as_ref()
-                .map(|doc| doc.to_vec())
-                .unwrap_or_default();
-            let doc_uint8 = Uint8Array::from(&doc_bytes[..]);
-            contenders_array.push(&doc_uint8);
+            let id_bytes = contender
+                .identity_id()
+                .to_buffer();
+            let id_uint8 = Uint8Array::from(&id_bytes[..]);
+            contenders_array.push(&id_uint8);
         }
         Reflect::set(
             &result_obj,

@@ -99,7 +99,7 @@ pub fn verify_document_proof(
 
 
     // Parse where clauses
-    let internal_clauses = match where_clauses.is_undefined() {
+    let internal_clauses = match where_clauses.is_null() || where_clauses.is_undefined() {
         true => InternalClauses::default(),
         false => parse_query_internal_clause(&where_clauses)?
     };
@@ -107,7 +107,7 @@ pub fn verify_document_proof(
     // Parse order by
     let mut order_by_map = IndexMap::new();
 
-    if !order_by.is_undefined() {
+    if !(order_by.is_undefined() || order_by.is_null()) {
         let js_order_by_array = Array::from(&order_by);
 
         for js_order_by_value in js_order_by_array.iter() {
