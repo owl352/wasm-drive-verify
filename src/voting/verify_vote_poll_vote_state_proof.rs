@@ -1,6 +1,6 @@
 use crate::utils::getters::VecU8ToUint8Array;
 use dpp::data_contract::accessors::v0::DataContractV0Getters;
-use dpp::data_contract::{DataContract, JsonValue};
+use dpp::data_contract::DataContract;
 use dpp::identifier::Identifier;
 use dpp::platform_value::Value;
 use dpp::serialization::PlatformDeserializableWithPotentialValidationFromVersionedStructure;
@@ -50,7 +50,7 @@ pub fn verify_vote_poll_vote_state_proof(
     contract_cbor: &Uint8Array,
     document_type_name: &str,
     index_name: &str,
-    js_index_values: Vec<JsValue>,
+    js_index_values: Vec<Uint8Array>,
     result_type: i32, // "documents" or "values"
     allow_include_locked_and_abstaining_vote_tally: bool,
     count: Option<u16>,
@@ -59,15 +59,25 @@ pub fn verify_vote_poll_vote_state_proof(
 ) -> Result<VerifyVotePollVoteStateProofResult, JsValue> {
     let proof_vec = proof.to_vec();
 
-    let mut index_values = Vec::new();
+    let index_values: Vec<Value> = js_index_values
+        .iter()
+        .map(|js_index_value| {
+            let js_index_value_bytes = js_index_value.to_vec();
 
-    for js_index_value in js_index_values {
-        let index_value: Value = serde_json::from_str::<JsonValue>(&stringify(&js_index_value)?)
-            .map_err(|err| JsValue::from(err.to_string()))?
-            .into();
+            let value_type = js_index_value_bytes.get(0).unwrap();
+            let _value_len = js_index_value_bytes.get(0).unwrap();
 
-        index_values.push(index_value);
-    }
+            if *value_type != 0x12 {
+                return Err(JsValue::from("can be used only string type (0x12)"))
+            }
+
+            let (_,value_bytes) = js_index_value_bytes.split_at(3);
+
+            let value = core::str::from_utf8(value_bytes).unwrap();
+
+            Ok(Value::Text(value.to_string())) 
+        })
+        .collect::<Result<Vec<Value>, JsValue>>()?;
 
     // Deserialize the data contract
     let contract_bytes = contract_cbor.to_vec();

@@ -1978,7 +1978,7 @@ function passArrayJsValueToWasm0(array, malloc) {
  * @param {Uint8Array} contract_cbor
  * @param {string} document_type_name
  * @param {string} index_name
- * @param {any[]} js_index_values
+ * @param {Uint8Array[]} js_index_values
  * @param {number} result_type
  * @param {boolean} allow_include_locked_and_abstaining_vote_tally
  * @param {number | null | undefined} count
@@ -5539,4 +5539,3 @@ async function __wbg_init(module_or_path) {
 
 export { initSync };
 export default __wbg_init;
-export { wasmBase64 } from "./wasm_drive_verify_bg.js"

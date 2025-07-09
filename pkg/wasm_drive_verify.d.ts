@@ -93,7 +93,7 @@ export function verifyVotePollsEndDateQueryMap(proof: Uint8Array, query_cbor: Ui
 export function verifyContestsProof(proof: Uint8Array, contract_cbor: Uint8Array, document_type_name: string, index_name: string, start_at_value: Uint8Array | null | undefined, start_index_values: Array<any> | null | undefined, end_index_values: Array<any> | null | undefined, limit: number | null | undefined, order_ascending: boolean, platform_version_number: number): VerifyContestsProofResult;
 export function verifyMasternodeVote(proof: Uint8Array, masternode_pro_tx_hash: Uint8Array, vote_cbor: Uint8Array, data_contract_cbor: Uint8Array, verify_subset_of_proof: boolean, platform_version_number: number): VerifyMasternodeVoteResult;
 export function verifySpecializedBalance(proof: Uint8Array, specialized_balance_id: Uint8Array, verify_subset_of_proof: boolean, platform_version_number: number): VerifySpecializedBalanceResult;
-export function verifyVotePollVoteStateProof(proof: Uint8Array, contract_cbor: Uint8Array, document_type_name: string, index_name: string, js_index_values: any[], result_type: number, allow_include_locked_and_abstaining_vote_tally: boolean, count: number | null | undefined, js_start_at: any, platform_version_number: number): VerifyVotePollVoteStateProofResult;
+export function verifyVotePollVoteStateProof(proof: Uint8Array, contract_cbor: Uint8Array, document_type_name: string, index_name: string, js_index_values: Uint8Array[], result_type: number, allow_include_locked_and_abstaining_vote_tally: boolean, count: number | null | undefined, js_start_at: any, platform_version_number: number): VerifyVotePollVoteStateProofResult;
 export function verifyVotePollVotesProof(proof: Uint8Array, contract_cbor: Uint8Array, document_type_name: string, index_name: string, contestant_id: Uint8Array, contested_document_resource_vote_poll_bytes: Uint8Array, start_at: Uint8Array | null | undefined, limit: number | null | undefined, order_ascending: boolean, platform_version_number: number): VerifyVotePollVotesProofResult;
 /**
  * Verifies elements at a specific path with given keys
@@ -808,4 +808,3 @@ export function initSync(module: { module: SyncInitInput } | SyncInitInput): Ini
 * @returns {Promise<InitOutput>}
 */
 export default function __wbg_init (module_or_path: { module_or_path: InitInput | Promise<InitInput> } | InitInput | Promise<InitInput>): Promise<InitOutput>;
-export { wasmBase64 } from "./wasm_drive_verify_bg.js"
