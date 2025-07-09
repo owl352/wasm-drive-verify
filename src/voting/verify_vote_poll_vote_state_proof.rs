@@ -71,10 +71,11 @@ pub fn verify_vote_poll_vote_state_proof(
                 return Err(JsValue::from("can be used only string type (0x12)"))
             }
 
-            let (_,value_bytes) = js_index_value_bytes.split_at(3);
+            let (_,value_bytes) = js_index_value_bytes.split_at(2);
+
 
             let value = core::str::from_utf8(value_bytes).unwrap();
-
+            
             Ok(Value::Text(value.to_string())) 
         })
         .collect::<Result<Vec<Value>, JsValue>>()?;
