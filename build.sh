@@ -22,7 +22,7 @@ cargo build --target wasm32-unknown-unknown --release \
 mkdir -p pkg
 
 if command -v wasm-snip &> /dev/null; then
-  wasm-snip ../../target/wasm32-unknown-unknown/release/wasm_drive_verify.wasm -o ../../target/wasm32-unknown-unknown/release/wasm_drive_verify.wasm --snip-rust-fmt-code --snip-rust-panicking-code
+  wasm-snip ./target/wasm32-unknown-unknown/release/wasm_drive_verify.wasm -o ./target/wasm32-unknown-unknown/release/wasm_drive_verify.wasm --snip-rust-fmt-code --snip-rust-panicking-code
 fi
 
 # Run wasm-bindgen
@@ -35,7 +35,7 @@ wasm-bindgen \
   --typescript \
   --out-dir=pkg \
   --target=web \
-  --omit-default-module-path ../../target/wasm32-unknown-unknown/release/wasm_drive_verify.wasm
+  --omit-default-module-path ./target/wasm32-unknown-unknown/release/wasm_drive_verify.wasm
 
 if command -v wasm-opt &> /dev/null; then
   echo "Optimizing wasm using Binaryen"
