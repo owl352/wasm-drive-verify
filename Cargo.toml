@@ -10,8 +10,8 @@ license = "MIT"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-drive = { git = "https://github.com/dashpay/platform", tag = "v2.0.1", default-features = false, features = ["verify"] }
-dpp = { git = "https://github.com/dashpay/platform", tag = "v2.0.1", default-features = false, features = [
+drive = { git = "https://github.com/owl352/platform", branch = "v2.1-dev", default-features = false, features = ["verify"] }
+dpp = { git = "https://github.com/owl352/platform", branch = "v2.1-dev", default-features = false, features = [
     "state-transitions",
     "system_contracts",
     "data-contract-serde-conversion",
@@ -43,7 +43,7 @@ bincode = { version = "2.0.0-rc.3" }
 [dev-dependencies]
 wasm-bindgen-test = "0.3.39"
 criterion = { version = "0.5", default-features = false, features = [] }
-dpp = { git = "https://github.com/dashpay/platform", tag = "v2.0.1", default-features = false, features = [
+dpp = { git = "https://github.com/owl352/platform", branch = "v2.1-dev", default-features = false, features = [
     "state-transitions",
     "random-public-keys",
     "random-identities",
